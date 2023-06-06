@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, Box, Link, Typography, Container, Tabs, Tab } from '@mui/material';
+import { Button, Box, Link, Typography, Container, Tabs, Tab, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
 import { TariConnection, TariConnectorButton } from 'tari-connector/src/index';
 import {
 	ResourceAddress,
@@ -18,6 +18,7 @@ import {
 	TariPermissionTransactionSend,
 	TariPermissionTransactionGet
 } from "tari-connector/src/tari_permissions";
+import { Input } from '@mui/icons-material';
 
 export default function App() {
 	return (
@@ -33,10 +34,21 @@ export default function App() {
 }
 
 function Connector() {
+	let signaling_server_address = import.meta.env.VITE_SIGNALING_SERVER_ADDRESS || "http://localhost:9100";
+	let tariswap: string = import.meta.env.VITE_TARISWAP_COMPONENT_ADDRESS;
+	let resource_lp: string = import.meta.env.VITE_LP_RESOURCE_ADDRESS;
+	let resource_a: string = import.meta.env.VITE_A_RESOURCE_ADDRESS;
+	let resource_b: string = import.meta.env.VITE_B_RESOURCE_ADDRESS;
+
 	const [tari, setTari] = React.useState<TariConnection | undefined>();
 	const [isConnected, setIsConnected] = React.useState<boolean>(false);
 	const [account, setAccount] = React.useState<string | undefined>();
 	const [currentTabIndex, setCurrentTabIndex] = React.useState(0);
+	const [swapResource, setSwapResource] = React.useState<string>(resource_a);
+	const [swapAmount, setSwapAmount] = React.useState(0);
+	const [addLpAmountA, setAddLpAmountA] = React.useState(0);
+	const [addLpAmountB, setAddLpAmountB] = React.useState(0);
+	const [removeLpamount, setRemoveLpAmount] = React.useState(0);
 
 	const onOpen = (tari: TariConnection) => {
 		console.log("OnOpen");
@@ -56,7 +68,8 @@ function Connector() {
 		console.log({ component_address });
 		setAccount(component_address);
 	};
-	let address = import.meta.env.VITE_SIGNALING_SERVER_ADDRESS || "http://localhost:9100";
+
+
 	let permissions = new TariPermissions();
 	permissions.addPermission(new TariPermissionAccountInfo())
 	permissions.addPermission(
@@ -68,9 +81,23 @@ function Connector() {
 
 	let optional_permissions = new TariPermissions();
 
-
 	const handleTabChange = (e, tabIndex: number) => {
 		setCurrentTabIndex(tabIndex);
+	};
+
+	const submitSwap = () => {
+		console.log("swap");
+		console.log({ swapAmount, swapResource });
+	};
+
+	const submitAddLp = () => {
+		console.log("add liquidity");
+		console.log({ addLpAmountA, addLpAmountB });
+	};
+
+	const submitRemoveLp = () => {
+		console.log("remove liquidity");
+		console.log({ removeLpamount });
 	};
 
 	return (
@@ -85,43 +112,83 @@ function Connector() {
 					<Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
 						<Tabs value={currentTabIndex} onChange={handleTabChange} aria-label="basic tabs example">
 							<Tab label="Swap" />
-							<Tab label="Deposit Liquidity" />
-							<Tab label="Withdraw Liquidity" />
+							<Tab label="Add Liquidity" />
+							<Tab label="Remove Liquidity" />
 						</Tabs>
 					</Box>
 
+					{/* Swap */}
 					{currentTabIndex === 0 && (
 						<Box sx={{ p: 3 }}>
-							<Typography variant='h5'>Tab 1 Content</Typography>
-							<Typography variant='p'>
-								TODO
-							</Typography>
+							<FormControl sx={{ m: 1 }} variant="standard">
+								<InputLabel id="swap-resource-select-label">Input resource</InputLabel>
+								<Select
+									labelId="swap-resource-label"
+									id="swap-resource-select"
+									value={swapResource}
+									onChange={e => setSwapResource(e.target.value)}
+								>
+									<MenuItem value={resource_a}>{resource_a}</MenuItem>
+									<MenuItem value={resource_b}>{resource_b}</MenuItem>
+								</Select>
+							</FormControl>
+							<FormControl sx={{ m: 1 }} variant="standard">
+								<TextField id="swap-amount-textbox" label="Amount" type="number" defaultValue={0} onChange={e => setSwapAmount(parseInt(e.target.value))} />
+							</FormControl>
+							<button
+								onClick={submitSwap}
+								style={{
+									width: '100%',
+									backgroundColor: '#9330FF',
+									color: '#FFFFFF',
+								}}
+							>   Swap
+							</button>
 						</Box>
 					)}
 
-					{/* TAB 2 Contents */}
+					{/* Add liquidity */}
 					{currentTabIndex === 1 && (
 						<Box sx={{ p: 3 }}>
-							<Typography variant='h5'>Tab 2 Content</Typography>
-							<Typography variant='p'>
-								TODO
-							</Typography>
+							<FormControl sx={{ m: 1 }} variant="standard">
+								<TextField id="add-a-textbox" label={"Amount of " + resource_a} type="number" defaultValue={0} onChange={e => setAddLpAmountA(parseInt(e.target.value))} />
+							</FormControl>
+							<FormControl sx={{ m: 1 }} variant="standard">
+								<TextField id="add-b-textbox" label={"Amount of " + resource_b} type="number" defaultValue={0} onChange={e => setAddLpAmountB(parseInt(e.target.value))} />
+							</FormControl>
+							<button
+								onClick={submitAddLp}
+								style={{
+									width: '100%',
+									backgroundColor: '#9330FF',
+									color: '#FFFFFF',
+								}}
+							>   Add liquididy
+							</button>
 						</Box>
 					)}
 
-					{/* TAB 3 Contents */}
+					{/* Remove liquidity */}
 					{currentTabIndex === 2 && (
 						<Box sx={{ p: 3 }}>
-							<Typography variant='h5'>Tab 3 Content</Typography>
-							<Typography variant='p'>
-								TODO
-							</Typography>
-						</Box>
+						<FormControl sx={{ m: 1 }} variant="standard">
+							<TextField id="remove-lp-textbox" label={"Amount of " + resource_lp} type="number" defaultValue={0} onChange={e => setRemoveLpAmount(parseInt(e.target.value))} />
+						</FormControl>
+						<button
+							onClick={submitRemoveLp}
+							style={{
+								width: '100%',
+								backgroundColor: '#9330FF',
+								color: '#FFFFFF',
+							}}
+						>   Remove liquidity
+						</button>
+					</Box>
 					)}
 				</div>
 				: <div>
 					<TariConnectorButton
-						signalingServer={address}
+						signalingServer={signaling_server_address}
 						permissions={permissions}
 						optional_permissions={optional_permissions}
 						onOpen={onOpen}
