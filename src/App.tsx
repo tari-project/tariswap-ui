@@ -20,6 +20,8 @@ import {
 } from "tari-connector/src/tari_permissions";
 import { Input } from '@mui/icons-material';
 
+import * as tariswapLib from './tariswap-lib';
+
 export default function App() {
 	return (
 		<Container maxWidth="sm">
@@ -86,18 +88,16 @@ function Connector() {
 	};
 
 	const submitSwap = () => {
-		console.log("swap");
-		console.log({ swapAmount, swapResource });
+		let outputRes = swapResource == resource_a ? resource_b : resource_a;  
+		tariswapLib.swap(account, tariswap, swapResource, swapAmount, outputRes);
 	};
 
 	const submitAddLp = () => {
-		console.log("add liquidity");
-		console.log({ addLpAmountA, addLpAmountB });
+		tariswapLib.addLiquidity(account, tariswap, resource_a, addLpAmountA, resource_b, addLpAmountB);
 	};
 
 	const submitRemoveLp = () => {
-		console.log("remove liquidity");
-		console.log({ removeLpamount });
+		tariswapLib.removeLiquidity(account, tariswap, resource_lp, removeLpamount);
 	};
 
 	return (
