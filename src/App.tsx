@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, Box, Link, Typography, Container } from '@mui/material';
+import { Button, Box, Link, Typography, Container, Tabs, Tab } from '@mui/material';
 import { TariConnection, TariConnectorButton } from 'tari-connector/src/index';
 import {
 	ResourceAddress,
@@ -7,7 +7,7 @@ import {
 	TariPermissionNftGetOwnershipProof,
 	TariPermissions,
 	TariPermissionAccountBalance,
-	TariPermissionAccountList,
+	TariPermissionAccountInfo,
 	SubstateAddress,
 	NonFungibleIndexAddress,
 	NonFungibleAddress,
@@ -15,7 +15,8 @@ import {
 	NonFungibleId,
 	U256,
 	ComponentAddress,
-	TariPermissionTransactionSend
+	TariPermissionTransactionSend,
+	TariPermissionTransactionGet
 } from "tari-connector/src/tari_permissions";
 
 export default function App() {
@@ -23,7 +24,7 @@ export default function App() {
 		<Container maxWidth="sm">
 			<Box sx={{ my: 4 }}>
 				<Typography variant="h4" component="h1" gutterBottom>
-					Tari-Connector Example
+					Tariswap
 				</Typography>
 				<Connector />
 			</Box>
@@ -31,42 +32,105 @@ export default function App() {
 	);
 }
 
-
 function Connector() {
 	const [tari, setTari] = React.useState<TariConnection | undefined>();
+	const [isConnected, setIsConnected] = React.useState<boolean>(false);
+	const [account, setAccount] = React.useState<string | undefined>();
+	const [currentTabIndex, setCurrentTabIndex] = React.useState(0);
+
 	const onOpen = (tari: TariConnection) => {
 		console.log("OnOpen");
 		setTari(tari);
 		window.tari = tari;
 	};
-	const setAnswer = () => {
+	const setAnswer = async () => {
+		console.log("setAnswer");
 		tari?.setAnswer();
+		await new Promise(f => setTimeout(f, 1000));
+		setIsConnected(true);
+		console.log("setAnswer 2");
+		let res = await tari.sendMessage("accounts.get_default", tari.token);
+		console.log("setAnswer 3");
+		console.log({ res });
+		let component_address = res.account.address.Component;
+		console.log({ component_address });
+		setAccount(component_address);
 	};
 	let address = import.meta.env.VITE_SIGNALING_SERVER_ADDRESS || "http://localhost:9100";
 	let permissions = new TariPermissions();
-	permissions.addPermission(new TariPermissionAccountList())
+	permissions.addPermission(new TariPermissionAccountInfo())
 	permissions.addPermission(
-		new TariPermissionTransactionSend(
-			new SubstateAddress(new ResourceAddress(new Hash([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])))
-		)
+		new TariPermissionTransactionSend()
+	);
+	permissions.addPermission(
+		new TariPermissionTransactionGet()
 	);
 
 	let optional_permissions = new TariPermissions();
-	optional_permissions.addPermission(
-		new TariPermissionAccountBalance(new SubstateAddress(new NonFungibleAddress(new NonFungibleAddressContents(
-			new ResourceAddress(new Hash([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])),
-			new NonFungibleId(new U256([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])),
-		)))));
+
+
+	const handleTabChange = (e, tabIndex: number) => {
+		setCurrentTabIndex(tabIndex);
+	};
 
 	return (
 		<>
-			<TariConnectorButton
-				signalingServer={address}
-				permissions={permissions}
-				optional_permissions={optional_permissions}
-				onOpen={onOpen}
-			/>
-			{tari ? <button onClick={setAnswer}>SetAnswer</button> : null}
+			{isConnected
+				? <div>
+					<Box sx={{ p: 2 }}>
+						<Typography variant='p'>
+							Using account <b>{account}</b>
+						</Typography>
+					</Box>
+					<Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+						<Tabs value={currentTabIndex} onChange={handleTabChange} aria-label="basic tabs example">
+							<Tab label="Swap" />
+							<Tab label="Deposit Liquidity" />
+							<Tab label="Withdraw Liquidity" />
+						</Tabs>
+					</Box>
+
+					{currentTabIndex === 0 && (
+						<Box sx={{ p: 3 }}>
+							<Typography variant='h5'>Tab 1 Content</Typography>
+							<Typography variant='p'>
+								TODO
+							</Typography>
+						</Box>
+					)}
+
+					{/* TAB 2 Contents */}
+					{currentTabIndex === 1 && (
+						<Box sx={{ p: 3 }}>
+							<Typography variant='h5'>Tab 2 Content</Typography>
+							<Typography variant='p'>
+								TODO
+							</Typography>
+						</Box>
+					)}
+
+					{/* TAB 3 Contents */}
+					{currentTabIndex === 2 && (
+						<Box sx={{ p: 3 }}>
+							<Typography variant='h5'>Tab 3 Content</Typography>
+							<Typography variant='p'>
+								TODO
+							</Typography>
+						</Box>
+					)}
+				</div>
+				: <div>
+					<TariConnectorButton
+						signalingServer={address}
+						permissions={permissions}
+						optional_permissions={optional_permissions}
+						onOpen={onOpen}
+					/>
+					{tari ? <button onClick={async () => { await setAnswer(); }}>SetAnswer</button> : null}
+				</div>
+			}
+
+
 		</>
 	);
 }
