@@ -89,15 +89,15 @@ function Connector() {
 
 	const submitSwap = () => {
 		let outputRes = swapResource == resource_a ? resource_b : resource_a;  
-		tariswapLib.swap(account, tariswap, swapResource, swapAmount, outputRes);
+		tariswapLib.swap(tari, account, tariswap, swapResource, swapAmount, outputRes);
 	};
 
 	const submitAddLp = () => {
-		tariswapLib.addLiquidity(account, tariswap, resource_a, addLpAmountA, resource_b, addLpAmountB);
+		tariswapLib.addLiquidity(tari, account, tariswap, resource_a, addLpAmountA, resource_b, addLpAmountB);
 	};
 
 	const submitRemoveLp = () => {
-		tariswapLib.removeLiquidity(account, tariswap, resource_lp, removeLpamount);
+		tariswapLib.removeLiquidity(tari, account, tariswap, resource_lp, removeLpamount);
 	};
 
 	return (
