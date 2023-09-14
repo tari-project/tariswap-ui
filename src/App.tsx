@@ -57,17 +57,10 @@ function Connector() {
 		setTari(tari);
 		window.tari = tari;
 	};
-	const setAnswer = async () => {
-		console.log("setAnswer");
-		tari?.setAnswer();
-		await new Promise(f => setTimeout(f, 1000));
+	const onConnection = async () => {
 		setIsConnected(true);
-		console.log("setAnswer 2");
-		let res = await tari.sendMessage("accounts.get_default", tari.token);
-		console.log("setAnswer 3");
-		console.log({ res });
+		let res = await window.tari.sendMessage("accounts.get_default", window.tari.token);
 		let component_address = res.account.address.Component;
-		console.log({ component_address });
 		setAccount(component_address);
 	};
 
@@ -192,8 +185,8 @@ function Connector() {
 						permissions={permissions}
 						optional_permissions={optional_permissions}
 						onOpen={onOpen}
+						onConnection={onConnection}
 					/>
-					{tari ? <button onClick={async () => { await setAnswer(); }}>SetAnswer</button> : null}
 				</div>
 			}
 
