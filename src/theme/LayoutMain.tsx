@@ -1,4 +1,4 @@
-//  Copyright 2022. The Tari Project
+//  Copyright 2024. The Tari Project
 //
 //  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 //  following conditions are met:
@@ -20,22 +20,41 @@
 //  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 //  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import "./App.css";
+import CssBaseline from "@mui/material/CssBaseline";
+import Toolbar from "@mui/material/Toolbar";
+import { AppBar, Stack, ThemeProvider, Typography } from "@mui/material";
+import theme from "./theme";
+import { Outlet } from "react-router-dom";
+import Container from "@mui/material/Container";
+import { TariConnectButton } from "../connect/TariConnectButton.tsx";
+import tariLogo from "../assets/tari-logo.svg";
 
-import { Routes, Route } from "react-router-dom";
-import ErrorPage from "./routes/ErrorPage";
-import Layout from "./theme/LayoutMain";
-import Home from "./routes/home";
-
-export default function App() {
+export default function Layout() {
   return (
-    <>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Home />} />
-            <Route path="*" element={<ErrorPage />} />
-          </Route>
-        </Routes>
-    </>
+    <ThemeProvider theme={theme}>
+
+      <CssBaseline />
+
+      <AppBar
+        position="static"
+        color="transparent"
+        elevation={0}
+      >
+        <Toolbar sx={{ justifyContent: 'space-between' }}>
+          <Stack direction='row' alignItems="center">
+            <img width="35px" height="35px" src={tariLogo} />
+            <Typography variant="h4" color="inherit" noWrap sx={{ mx: 1, height: '100%' }}>
+              TariSwap
+            </Typography>
+          </Stack>
+          <TariConnectButton />
+        </Toolbar>
+      </AppBar>
+
+      <Container maxWidth="sm">
+        <Outlet/>
+      </Container>
+
+    </ThemeProvider>
   );
 }
