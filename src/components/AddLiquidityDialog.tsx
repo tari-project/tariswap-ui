@@ -11,16 +11,21 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useEffect, useState } from "react";
 import useTariProvider from "../store/provider";
 import * as tariswap from "../tariswap.ts";
+import { useSnackbar } from "./SnackbarContext.tsx";
+import { useBackdrop } from "./BackdropContext.tsx";
+
 
 export interface AddLiquidityDialogProps {
     open: boolean;
-    pool: object | null,
+    pool: tariswap.PoolProps | null,
     onClose: () => void;
 }
 
 export function AddLiquidityDialog(props: AddLiquidityDialogProps) {
     const { provider } = useTariProvider();
-    
+    const { showSnackbar } = useSnackbar();
+    const { openBackdrop, closeBackdrop } = useBackdrop();
+
     const { pool, onClose, open } = props;
 
     const [amountTokenA, setAmountTokenA] = useState<string | null>(null);
@@ -38,36 +43,52 @@ export function AddLiquidityDialog(props: AddLiquidityDialogProps) {
         onClose();
     };
 
-    const handleAmountTokenA = async (event) => {
+    const handleAmountTokenA = async (event: React.ChangeEvent<HTMLInputElement>) => {
         setAmountTokenA(event.target.value);
     };
 
-    const handleAmountTokenB = async (event) => {
+    const handleAmountTokenB = async (event: React.ChangeEvent<HTMLInputElement>) => {
         setAmountTokenB(event.target.value);
     };
 
     const handleAddLiquidity = async () => {
+        if (!provider || !pool) {
+            showSnackbar("Required data is missing", "error");
+            return;
+        }
+        if (!amountTokenA || !amountTokenB) {
+            showSnackbar("Enter liquidity amounts", "error");
+            return;
+        }
+
         const amountTokenAasNumber = parseInt(amountTokenA);
         if (!amountTokenAasNumber || amountTokenAasNumber <= 0) {
-            console.error("Invalid amount");
+            showSnackbar("First amount is invalid", "error");
             return;
         }
         const amountTokenBasNumber = parseInt(amountTokenB);
         if (!amountTokenBasNumber || amountTokenBasNumber <= 0) {
-            console.error("Invalid amount");
+            showSnackbar("Second amount is invalid", "error");
             return;
         }
 
-
-        const result = await tariswap.addLiquidity(
-            provider,
-            pool.poolComponent,
-            pool.resourceA,
-            amountTokenAasNumber,
-            pool.resourceB,
-            amountTokenBasNumber
-        );
-        console.log({result});
+        openBackdrop();
+        try {
+          const result = await tariswap.addLiquidity(
+              provider,
+              pool.poolComponent,
+              pool.resourceA,
+              amountTokenAasNumber,
+              pool.resourceB,
+              amountTokenBasNumber
+          );
+          console.log({result});
+          showSnackbar("Liquidity was added!", "success");
+        } catch (error) {
+          console.log(error);
+          showSnackbar("Failed to add liquidity", "error");
+        }
+        closeBackdrop();
         onClose();
     };
 
@@ -85,7 +106,7 @@ export function AddLiquidityDialog(props: AddLiquidityDialogProps) {
                     </IconButton>
                 </Stack>
                 <Divider sx={{ mt: 3, mb: 3 }} variant="middle" />
-                
+
                 <Stack direction="row" spacing={4} sx={{ mt: 2}} justifyContent="space-between">
                     <Stack direction='row' alignItems="center">
                         <Typography style={{ fontSize: 16 }}>{truncateResource(pool.resourceA, 20)}</Typography>
@@ -122,14 +143,14 @@ export function AddLiquidityDialog(props: AddLiquidityDialogProps) {
                         }} />
                 </Stack>
 
-                <Stack direction="row" justifyContent="center" sx={{ mt: 5, width: '100%' }}>         
+                <Stack direction="row" justifyContent="center" sx={{ mt: 5, width: '100%' }}>
                     <Button variant="contained"
                     onClick={async () => { await handleAddLiquidity(); }}
                     sx={{ borderRadius: 1, fontSize: 18, textTransform: 'none' }}>
                         Add Liquidity
                     </Button>
                 </Stack>
-                
+
 
             </Box>
         </Dialog >

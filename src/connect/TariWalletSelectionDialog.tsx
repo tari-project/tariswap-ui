@@ -1,4 +1,3 @@
-import * as React from 'react';
 import Box from "@mui/material/Box";
 import Dialog from "@mui/material/Dialog";
 import Divider from "@mui/material/Divider";
@@ -7,21 +6,20 @@ import CloseIcon from '@mui/icons-material/Close';
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import TariLogo from './content/tari-logo.svg';
-import MetamaskLogo from './content/metamask-logo.svg';
+import WalletConnectLogo from "./content/walletconnect-logo.svg";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
-import {TariWalletDaemonConnectDialog} from './TariWalletDaemonConnectDialog';
-import { MetamaskTariProvider, TariPermissions, TariProvider } from '@tariproject/tarijs';
-import { TariPermissionKeyList, TariPermissionAccountInfo, TariPermissionTransactionsGet, TariPermissionSubstatesRead, TariPermissionTemplatesRead, TariPermissionTransactionSend } from '@tariproject/tarijs/dist/providers/wallet_daemon';
+import { TariPermissions, TariProvider, WalletConnectTariProvider } from '@tari-project/tarijs';
+import { TariPermissionKeyList, TariPermissionAccountInfo, TariPermissionTransactionsGet, TariPermissionSubstatesRead, TariPermissionTemplatesRead, TariPermissionTransactionSend, WalletDaemonTariProvider, WalletDaemonFetchParameters } from '@tari-project/tarijs/dist/providers/wallet_daemon';
 
 
-const SIGNALING_SERVER_URL = import.meta.env.VITE_SIGNALING_SERVER_ADDRESS || "http://localhost:9100";
-const SNAP_ID = import.meta.env.VITE_SNAP_ORIGIN || "local:http://localhost:8080";
+const WALLET_CONNECT_PROJECT_ID = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID || null;
+const WALLET_DAEMON_ENABLED = import.meta.env.VITE_WALLET_DAEMON_ENABLED || false;
 
 // Minimal permissions for the example site
 // But each application will have different permission needs
-let walletDaemonPermissions = new TariPermissions();
+const walletDaemonPermissions = new TariPermissions();
 walletDaemonPermissions
     // Required for createFreeTestCoins
   .addPermission("Admin")
@@ -31,7 +29,7 @@ walletDaemonPermissions
   .addPermission(new TariPermissionSubstatesRead())
   .addPermission(new TariPermissionTemplatesRead())
   .addPermission(new TariPermissionTransactionSend());
-let walletDaemonOptionalPermissions = new TariPermissions();
+const walletDaemonOptionalPermissions = new TariPermissions();
 
 export interface WalletSelectionProps {
   open: boolean;
@@ -42,24 +40,28 @@ export interface WalletSelectionProps {
 export function TariWalletSelectionDialog(props: WalletSelectionProps) {
   const {onClose, open, onConnected} = props;
 
-  const [walletDaemonOpen, setWalletDaemonOpen] = React.useState(false);
   const handleClose = () => {
-    setWalletDaemonOpen(false);
     onClose();
   };
 
-  const onWalletDaemonClick = () => {
-    setWalletDaemonOpen(true);
-  };
-
-  const onMetamaskClick = async () => {
-    const metamaskProvider = new MetamaskTariProvider(SNAP_ID, window.ethereum);
-    await metamaskProvider.connect();
-    onConnected(metamaskProvider);
+  const onWalletDaemonClick = async () => {
+    const params: WalletDaemonFetchParameters = {
+      permissions: walletDaemonPermissions,
+      optionalPermissions: walletDaemonOptionalPermissions,
+      serverUrl: "http://127.0.0.1:12010/json_rpc",
+    };
+    const walletDaemonProvider = await WalletDaemonTariProvider.buildFetchProvider(params);
+    onConnected(walletDaemonProvider);
     handleClose();
   };
 
-
+  const onWalletConnectClick = async () => {
+    const projectId = WALLET_CONNECT_PROJECT_ID;
+    const walletConnectProvider = new WalletConnectTariProvider(projectId);
+    handleClose();
+    await walletConnectProvider.connect();
+    onConnected(walletConnectProvider);
+  };
 
   return (
     <Dialog fullWidth={true} onClose={handleClose} open={open}>
@@ -72,17 +74,18 @@ export function TariWalletSelectionDialog(props: WalletSelectionProps) {
         </Stack>
         <Divider sx={{mt: 3, mb: 3}} variant="middle"/>
         <Grid container spacing={2} justifyContent='center'>
+          { WALLET_DAEMON_ENABLED && (
           <Grid item xs={4}>
             <WalletConnectionMethodCard img={TariLogo} text='Tari Wallet Daemon'
                                         callback={onWalletDaemonClick}></WalletConnectionMethodCard>
-            <TariWalletDaemonConnectDialog open={walletDaemonOpen} onClose={handleClose} onConnected={onConnected}
-                                           signalingServerUrl={SIGNALING_SERVER_URL}
-                                           permissions={walletDaemonPermissions}
-                                           optionalPermissions={walletDaemonOptionalPermissions}></TariWalletDaemonConnectDialog>
           </Grid>
+          )}
           <Grid item xs={4}>
-            <WalletConnectionMethodCard img={MetamaskLogo} text='MetaMask'
-                                        callback={onMetamaskClick}></WalletConnectionMethodCard>
+            <WalletConnectionMethodCard
+              img={WalletConnectLogo}
+              text="WalletConnect"
+              callback={onWalletConnectClick}
+            ></WalletConnectionMethodCard>
           </Grid>
         </Grid>
       </Box>
@@ -90,7 +93,7 @@ export function TariWalletSelectionDialog(props: WalletSelectionProps) {
   );
 }
 
-function WalletConnectionMethodCard({img, text, callback}: any) {
+function WalletConnectionMethodCard({img, text, callback}: { img: string, text: string, callback: () => void}) {
   return (
     <Card variant="outlined" elevation={0}
           sx={{mty: 4, padding: 4, borderRadius: 4, width: '175px', height: '175px', cursor: 'pointer'}}>

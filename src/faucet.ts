@@ -1,55 +1,62 @@
-import { TariProvider } from "@tariproject/tarijs";
+import {
+  fromWorkspace,
+  TariProvider,
+  TransactionBuilder,
+} from "@tari-project/tarijs";
 import * as wallet from "./wallet.ts";
 
-export async function createFaucet(provider: TariProvider, faucet_template: string, initial_supply: number, symbol: string) {
-    const account = await provider.getAccount();
-    const initial_supply_arg = `Amount(${initial_supply})`;
-    const instructions = [
-        {
-            "CallFunction": {
-                "template_address": faucet_template,
-                "function": "mint_with_symbol",
-                "args": [initial_supply_arg, symbol]
-            }
-        }
-    ];
-    const required_substates = [
-        {substate_id: account.address},
-    ];
-
-    let result = await wallet.submitAndWaitForTransaction(provider, account, instructions, required_substates);
-    return result;
+export async function createFaucet(
+  provider: TariProvider,
+  faucetTemplate: string,
+  initialSupply: number,
+  symbol: string
+) {
+  const account = await provider.getAccount();
+  const builder = new TransactionBuilder().callFunction(
+    {
+      templateAddress: faucetTemplate,
+      functionName: "mint_with_symbol",
+    },
+    [initialSupply, symbol]
+  );
+  const result = await wallet.submitTransactionAndWaitForResult({
+    provider,
+    account,
+    builder,
+    requiredSubstates: [{ substate_id: account.address }],
+  });
+  return result;
 }
 
-export async function takeFreeCoins(provider: TariProvider, faucet_component: string) {
-    const account = await provider.getAccount();
-    const instructions = [
-        {
-            "CallMethod": {
-                "component_address": faucet_component,
-                "method": "take_free_coins",
-                "args": []
-            },
-        },
-        {
-            "PutLastInstructionOutputOnWorkspace": {
-                "key": [0]
-            }
-        },
-        {
-            "CallMethod": {
-                "component_address": account.address,
-                "method": "deposit",
-                "args": [{ "Workspace": [0] }]
-            }
-        }
-    ];
-    const required_substates = [
-        {substate_id: account.address},
-        {substate_id: faucet_component},
-    ];
-
-    let result = await wallet.submitAndWaitForTransaction(provider, account, instructions, required_substates);
-
-    return result;
+export async function takeFreeCoins(
+  provider: TariProvider,
+  faucetComponent: string
+) {
+  const account = await provider.getAccount();
+  const builder = new TransactionBuilder()
+    .callMethod(
+      {
+        componentAddress: faucetComponent,
+        methodName: "take_free_coins",
+      },
+      []
+    )
+    .saveVar("coins")
+    .callMethod(
+      {
+        componentAddress: account.address,
+        methodName: "deposit",
+      },
+      [fromWorkspace("coins")]
+    );
+  const result = await wallet.submitTransactionAndWaitForResult({
+    provider,
+    account,
+    builder,
+    requiredSubstates: [
+      { substate_id: account.address },
+      { substate_id: faucetComponent },
+    ],
+  });
+  return result;
 }

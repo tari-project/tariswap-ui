@@ -20,7 +20,7 @@
 //  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 //  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Box, IconButton, Paper, Stack, Typography } from "@mui/material";
 import Button from "@mui/material/Button";
 import useTariProvider from "../store/provider.ts";
@@ -32,22 +32,22 @@ import { CreatePoolDialog } from "../components/CreatePoolDialog.tsx";
 import { RemoveLiquidityDialog } from "../components/RemoveLiquidityDialog.tsx";
 
 function Pools() {
-    const pool_index_component: string = import.meta.env.VITE_POOL_INDEX_COMPONENT;
+    const poolIndexComponent: string = import.meta.env.VITE_POOL_INDEX_COMPONENT;
 
     const { provider } = useTariProvider();
 
-    const [pools, setPools] = useState<object[]>([]);
-    const [selectedPool, setSelectedPool] = useState<object | null>(null);
+    const [pools, setPools] = useState<tariswap.PoolProps[]>([]);
+    const [selectedPool, setSelectedPool] = useState<tariswap.PoolProps | null>(null);
     const [addLiquidityDialogOpen, setAddLiquidityDialogOpen] = useState(false);
     const [removeLiquidityDialogOpen, setRemoveLiquidityDialogOpen] = useState(false);
     const [createPoolDialogOpen, setCreatePoolDialogOpen] = useState(false);
 
-    const refreshPools = () => {
+    const refreshPools = useCallback(() => {
         if (!provider) {
             return;
         }
 
-        tariswap.listPools(provider, pool_index_component)
+        tariswap.listPools(provider, poolIndexComponent)
             .then(pools => {
                 setPools(pools);
                 console.log(pools);
@@ -55,18 +55,18 @@ function Pools() {
             .catch(e => {
                 console.error(e);
             });
-    }
+    }, [provider, poolIndexComponent]);
 
     useEffect(() => {
         refreshPools();
-    }, []);
+    }, [refreshPools]);
 
-    const handleAddLiquidity = async (pool: object) => {
+    const handleAddLiquidity = async (pool: tariswap.PoolProps) => {
         setSelectedPool(pool);
         setAddLiquidityDialogOpen(true);
     };
 
-    const handleRemoveLiquidity = async (pool: object) => {
+    const handleRemoveLiquidity = async (pool: tariswap.PoolProps) => {
         setSelectedPool(pool);
         setRemoveLiquidityDialogOpen(true);
     };
@@ -82,8 +82,8 @@ function Pools() {
 
     return <Box>
         {
-            pools.map(pool => (
-                <Paper variant="outlined" elevation={0} sx={{ my: { xs: 3, md: 6 }, p: { xs: 2, md: 3 }, borderRadius: 2 }}>
+            pools.map((pool, index) => (
+                <Paper key={index} variant="outlined" elevation={0} sx={{ my: { xs: 3, md: 6 }, p: { xs: 2, md: 3 }, borderRadius: 2 }}>
 
                     <Stack direction='row' alignItems='center' spacing={4}>
                         <Stack direction='column' sx={{ width: '60%' }}>
