@@ -11,7 +11,8 @@ import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import { TariPermissions, TariProvider, WalletConnectTariProvider } from '@tari-project/tarijs';
-import { TariPermissionKeyList, TariPermissionAccountInfo, TariPermissionTransactionsGet, TariPermissionSubstatesRead, TariPermissionTemplatesRead, TariPermissionTransactionSend, WalletDaemonTariProvider, WalletDaemonFetchParameters } from '@tari-project/tarijs/dist/providers/wallet_daemon';
+import { TariPermissionAccountInfo, TariPermissionKeyList, TariPermissionSubstatesRead, TariPermissionTemplatesRead, TariPermissionTransactionSend, TariPermissionTransactionsGet } from "@tari-project/tari-permissions";
+import { WalletDaemonFetchParameters, WalletDaemonTariProvider } from "@tari-project/wallet-daemon-provider";
 
 
 const WALLET_CONNECT_PROJECT_ID = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID || null;
