@@ -67,7 +67,7 @@ export async function listPools(
 ): Promise<PoolProps[]> {
   const substate = await wallet.getSubstate(provider, poolIndexComponent);
 
-  const state = cbor.convertCborValue(substate.value.substate.Component.body.state);
+  const state = cbor.convertCborValue(substate.value.Component.body.state);
   const pools = state["pools"] as Record<string, string> | undefined;
   if (!pools) {
     return [];
@@ -85,7 +85,7 @@ export async function getPoolLiquidityResource(
 ) {
   const substate = await wallet.getSubstate(provider, poolComponent);
 
-  const componentBody = substate.value.substate.Component.body.state;
+  const componentBody = substate.value.Component.body.state;
   const lpResource = cbor.getValueByPath(componentBody, "$.lp_resource");
 
   return lpResource;

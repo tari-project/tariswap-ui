@@ -8,9 +8,12 @@ The `tariswap` template implements a decentralized exchange smart contract on th
 
 ## Install templates
 
-We need a running Tari network with the following:
-* Both `tariswap_index` and `tariswap_pool` templates deployed. The code can be found in the Tari [test-templates](https://github.com/tari-project/test-templates/tree/main/templates/tariswap/templates) repository.
-* The `faucet` template deployed. It can be found in the Tari [template_test_tooling](https://github.com/tari-project/tari-dan/tree/development/dan_layer/template_test_tooling/templates/faucet) crate.
+We need a running Tari network with the following templates:
+* `tariswap_index`
+* `tariswap_pool`
+* `faucet`
+
+The template code as well as the binaries (WASM files) can be found in the Tari [test-templates](https://github.com/tari-project/test-templates/tree/main/templates/tariswap/templates) repository.
 
 If you plan to use `ContractNet`, most likely these templates are already deployed.
 Otherwise, you will need to build WASM templates and upload them to Tari chain using one of many available methods. One of them is using Tari Wallet `Publish Template` feature.
