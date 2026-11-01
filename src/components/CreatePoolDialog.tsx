@@ -54,8 +54,14 @@ export function CreatePoolDialog(props: CreatePoolDialogProps) {
             showSnackbar("Provider is not set", "error");
             return;
         }
-        if (!tokenA || !tokenB) {
+        const normalizedTokenA = tokenA?.trim();
+        const normalizedTokenB = tokenB?.trim();
+        if (!normalizedTokenA || !normalizedTokenB) {
             showSnackbar("Please, provide resource addresses of tokens", "error");
+            return;
+        }
+        if (normalizedTokenA === normalizedTokenB) {
+            showSnackbar("Token resource addresses must be different", "error");
             return;
         }
 
@@ -64,17 +70,18 @@ export function CreatePoolDialog(props: CreatePoolDialogProps) {
           const result = await tariswap.createPool(
               provider,
               poolIndexComponent,
-              tokenA,
-              tokenB
+              normalizedTokenA,
+              normalizedTokenB
           );
           console.log({ result });
           showSnackbar("Pool was created!", "success");
+          onClose();
         } catch (error) {
           console.log(error);
           showSnackbar("Failed to create the pool", "error");
+        } finally {
+          closeBackdrop();
         }
-        closeBackdrop();
-        onClose();
     };
 
     return (

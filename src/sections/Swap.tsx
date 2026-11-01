@@ -99,7 +99,12 @@ function Swap() {
         setInputAmount("");
 
         // when the user selects a token, the other token must only correspond to existing pool pairs
-        setOutputTokens(getCorrespondingPoolTokens(token));
+        const validOutputs = getCorrespondingPoolTokens(token);
+        setOutputTokens(validOutputs);
+        if (selectedOutputToken && !validOutputs.includes(selectedOutputToken)) {
+            setSelectedOutputToken(null);
+            setInputTokens(tokens);
+        }
     };
 
     const handleOutputTokenSelected = (token: string | null) => {
@@ -107,7 +112,12 @@ function Swap() {
         setOutputTokenDialogOpen(false);
 
         // when the user selects a token, the other token must only correspond to existing pool pairs
-        setInputTokens(getCorrespondingPoolTokens(token));
+        const validInputs = getCorrespondingPoolTokens(token);
+        setInputTokens(validInputs);
+        if (selectedInputToken && !validInputs.includes(selectedInputToken)) {
+            setSelectedInputToken(null);
+            setOutputTokens(tokens);
+        }
     };
 
     const handleInputAmount = async (event: React.ChangeEvent<HTMLInputElement>) => {

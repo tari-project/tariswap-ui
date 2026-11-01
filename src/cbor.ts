@@ -17,21 +17,29 @@ export function getValueByPath(cborRepr: CborValue | null, path: string): any {
   if (!cborRepr) {
     return null;
   }
-  let value = cborRepr;
+  let value: any = cborRepr;
   for (const part of path.split(".")) {
     if (part == "$") {
       continue;
     }
+    if (value === null || value === undefined || typeof value !== "object") {
+      return null;
+    }
     if ("Map" in value) {
-      value = value.Map.find((v) => convertCborValue(v[0]) === part)?.[1];
-      if (!value) {
+      const entry = value.Map.find((v: [any, any]) => convertCborValue(v[0]) === part);
+      if (!entry) {
         return null;
       }
+      value = entry[1];
       continue;
     }
 
     if ("Array" in value) {
-      value = value.Array[parseInt(part)];
+      const index = Number(part);
+      if (!Number.isInteger(index) || index < 0 || index >= value.Array.length) {
+        return null;
+      }
+      value = value.Array[index];
       continue;
     }
 
@@ -41,6 +49,12 @@ export function getValueByPath(cborRepr: CborValue | null, path: string): any {
 }
 
 export function convertCborValue(value: any): any {
+  if (value === null || value === undefined || typeof value !== "object") {
+    return value;
+  }
+  if ("Null" in value) {
+    return null;
+  }
   if ("Map" in value) {
     const result = {} as { [key: string]: any };
     for (const [key, val] of value.Map) {
@@ -49,7 +63,12 @@ export function convertCborValue(value: any): any {
     return result;
   }
   if ("Tag" in value) {
-    return convertTaggedValueToString(value.Tag[0], value.Tag[1].Bytes);
+    const tagPayload = value.Tag[1];
+    const bytes =
+      tagPayload && typeof tagPayload === "object" && "Bytes" in tagPayload
+        ? tagPayload.Bytes
+        : tagPayload;
+    return convertTaggedValueToString(value.Tag[0], bytes);
   }
   if ("Text" in value) {
     return value.Text;
@@ -63,6 +82,12 @@ export function convertCborValue(value: any): any {
   }
   if ("Integer" in value) {
     return value.Integer;
+  }
+  if ("Int" in value) {
+    return value.Int;
+  }
+  if ("Float" in value) {
+    return value.Float;
   }
   if ("Bool" in value) {
     return value.Bool;

@@ -90,13 +90,13 @@ export function RemoveLiquidityDialog(props: RemoveLiquidityDialogProps) {
           );
           console.log({result});
           showSnackbar("Liquidity was removed!", "success");
+          onClose();
         } catch (error) {
           console.log(error);
           showSnackbar("Failed to remove the liquidity", "error");
+        } finally {
+          closeBackdrop();
         }
-        closeBackdrop();
-
-        onClose();
     };
 
     if (!pool) {

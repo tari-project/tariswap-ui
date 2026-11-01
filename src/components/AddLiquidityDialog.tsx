@@ -84,12 +84,13 @@ export function AddLiquidityDialog(props: AddLiquidityDialogProps) {
           );
           console.log({result});
           showSnackbar("Liquidity was added!", "success");
+          onClose();
         } catch (error) {
           console.log(error);
           showSnackbar("Failed to add liquidity", "error");
+        } finally {
+          closeBackdrop();
         }
-        closeBackdrop();
-        onClose();
     };
 
     if (!pool) {

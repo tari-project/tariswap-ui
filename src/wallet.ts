@@ -60,8 +60,16 @@ export async function waitForTransactionResult(
       TransactionStatus.DryRun,
     ];
 
-    if (resp.status == TransactionStatus.Rejected) {
-      throw new Error(`Transaction rejected: ${JSON.stringify(resp.result)}`);
+    const FAILED_STATUSES = [
+      TransactionStatus.Rejected,
+      TransactionStatus.InvalidTransaction,
+      TransactionStatus.OnlyFeeAccepted,
+    ];
+
+    if (FAILED_STATUSES.includes(resp.status)) {
+      throw new Error(
+        `Transaction failed with status ${TransactionStatus[resp.status] ?? resp.status}: ${JSON.stringify(resp.result)}`
+      );
     }
 
     if (FINALIZED_STATUSES.includes(resp.status)) {
